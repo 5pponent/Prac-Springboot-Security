@@ -42,11 +42,20 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
         System.out.println("user.getAttributes() = " + oAuth2User.getAttributes());
 
         // 회원가입 로직
-        String provider = userRequest.getClientRegistration().getRegistrationId(); // google
-        String providerId = oAuth2User.getAttribute("sub");
-        String username = provider + "_" + providerId; // google_54194984216516514..
+        OAuth2UserInfo oAuth2UserInfo = null;
+        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
+            oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        }
+        else if (userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
+            oAuth2UserInfo = new FacebookUserInfo(oAuth2User.getAttributes());
+        }
+        else { System.out.println("지원하지 않는 플랫폼"); }
+
+        String provider = oAuth2UserInfo.getProvider();
+        String providerId = oAuth2UserInfo.getProviderId();
+        String username = provider + "_" + providerId;
         String password = passwordEncoder.encode("비밀번호");
-        String email = oAuth2User.getAttribute("email");
+        String email = oAuth2UserInfo.getEmail();
         String role = "ROLE_USER";
 
         User user = userRepository.findByUsername(username);
